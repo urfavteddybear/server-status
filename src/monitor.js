@@ -40,7 +40,7 @@ client.once('ready', async () => {
     const uptimeSeconds = Math.floor(uptime % 60);
 
     const resourceEmbed = {
-      color: 0x7289da,
+      color: 0x2F3136,
       title: '📊 **Server Information**',
       fields: [
         { name: '💻 **CPU**', value: `**Model**: ${cpu.manufacturer} ${cpu.brand}\n**Load**: \`${cpuLoad.currentLoad.toFixed(2)}%\``, inline: false },
@@ -90,7 +90,7 @@ client.once('ready', async () => {
       for (let i = 0; i < siteFields.length; i += maxFieldsPerEmbed) {
         const chunk = siteFields.slice(i, i + maxFieldsPerEmbed);
         siteEmbeds.push({
-          color: 0x32a852,
+          color: 0x2F3136,
           title: `🌐 **Website/Server Status (Page ${Math.floor(i / maxFieldsPerEmbed) + 1})**`,
           fields: chunk,
           footer: { text: 'Updated every 30 seconds', icon_url: 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png' },

@@ -2,7 +2,7 @@ module.exports = {
     token: '',  // Your Discord bot token
     channelId: '',  // Channel for both resource and site monitor updates
     refreshInterval: 10 * 1000,  // 30 seconds refresh interval
-    webMonitor: true,
+    webMonitor: true, // change this to false if you dont want the webmonitor
     sitesToMonitor: [
         { 
             url: 'https://youtube.com', 
