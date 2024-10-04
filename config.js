@@ -1,6 +1,7 @@
 module.exports = {
     token: '',  // Your Discord bot token
-    channelId: '',  // Channel for both resource and site monitor updates
+    resourceChannelId: '',  // Channel for resource monitor updates
+    siteChannelId: '',  // Channel for site monitor updates (can be same as resourceChannelId)
     refreshInterval: 10 * 1000,  // 30 seconds refresh interval
     webMonitor: true, // change this to false if you dont want the webmonitor
     sitesToMonitor: [

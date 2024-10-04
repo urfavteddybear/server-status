@@ -3,20 +3,23 @@ const si = require('systeminformation');
 const os = require('os');
 const axios = require('axios');
 const ping = require('ping');
-const { token, channelId, refreshInterval, sitesToMonitor, webMonitor } = require('../config');
+const { token, resourceChannelId, siteChannelId, refreshInterval, sitesToMonitor, webMonitor } = require('../config');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
-  const channel = client.channels.cache.get(channelId);
+  
+  const resourceChannel = client.channels.cache.get(resourceChannelId);
+  const siteChannel = client.channels.cache.get(siteChannelId);
 
-  if (!channel) {
-    console.error('Channel not found!');
+  if (!resourceChannel || !siteChannel) {
+    console.error('One or both channels not found!');
     return;
   }
 
-  let sentMessage;
+  let resourceSentMessage;
+  let siteSentMessage;
 
   function formatSize(size) {
     if (size > 1024 ** 4) return `${(size / (1024 ** 4)).toFixed(2)} TB`;
@@ -50,11 +53,17 @@ client.once('ready', async () => {
         { name: '⏱️ **Uptime**', value: `\`${uptimeDays} days, ${uptimeHours} hours, ${uptimeMinutes} minutes, ${uptimeSeconds} seconds\``, inline: false },
         { name: '🖥️ **Platform**', value: `\`${platform}\``, inline: true },
       ],
-      footer: { text: 'Updated every 30 seconds' },
+      footer: { text: 'Updated every 30 seconds', icon_url: 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png' },
       timestamp: new Date(),
     };
 
-    let siteEmbeds = [];
+    // Send resource monitor to the resource channel
+    if (resourceSentMessage) {
+      await resourceSentMessage.edit({ embeds: [resourceEmbed] }).catch(console.error);
+    } else {
+      resourceSentMessage = await resourceChannel.send({ embeds: [resourceEmbed] }).catch(console.error);
+    }
+
     if (webMonitor) {
       let siteFields = await Promise.all(sitesToMonitor.map(async (site) => {
         try {
@@ -74,51 +83,64 @@ client.once('ready', async () => {
         }
       }));
 
-      // Logic to format the sites in rows of 3 if the total number of sites is a multiple of 3
+      // Determine whether to display fields inline (sideways) or block (downwards)
       if (siteFields.length % 3 === 0) {
-        siteFields.forEach((field, index) => {
-          field.inline = true; // All sites are shown inline (side by side)
+        siteFields.forEach((field) => {
+          field.inline = true;
         });
       } else {
         siteFields.forEach((field) => {
-          field.inline = false; // Display sites downward (in column format)
+          field.inline = false;
         });
       }
 
-      // Split into multiple embeds if necessary
       const maxFieldsPerEmbed = 25;
+      let siteEmbeds = [];
       for (let i = 0; i < siteFields.length; i += maxFieldsPerEmbed) {
         const chunk = siteFields.slice(i, i + maxFieldsPerEmbed);
         siteEmbeds.push({
           color: 0x2F3136,
           title: `🌐 **Website/Server Status (Page ${Math.floor(i / maxFieldsPerEmbed) + 1})**`,
           fields: chunk,
-          footer: { text: 'Updated every 30 seconds' },
+          footer: { text: 'Updated every 30 seconds', icon_url: 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png' },
           timestamp: new Date(),
         });
       }
+
+      // Send site monitor to the site channel
+      if (siteSentMessage) {
+        await siteSentMessage.edit({ embeds: siteEmbeds }).catch(console.error);
+      } else {
+        siteSentMessage = await siteChannel.send({ embeds: siteEmbeds }).catch(console.error);
+      }
     }
 
-    if (sentMessage) {
-      if (webMonitor) {
-        await sentMessage.edit({ embeds: [resourceEmbed, ...siteEmbeds] }).catch(console.error);
-      } else {
-        await sentMessage.edit({ embeds: [resourceEmbed] }).catch(console.error);
-      }
+    // Delete old messages only from their respective types
+    if (resourceChannelId === siteChannelId) {
+      // If both monitors send to the same channel, don't delete each other's messages
+      const messages = await resourceChannel.messages.fetch({ limit: 10 });
+      messages.forEach(async (message) => {
+        if (message.author.id === client.user.id && message.id !== resourceSentMessage.id && message.id !== siteSentMessage?.id) {
+          await message.delete().catch(console.error);
+        }
+      });
     } else {
-      if (webMonitor) {
-        sentMessage = await channel.send({ embeds: [resourceEmbed, ...siteEmbeds] }).catch(console.error);
-      } else {
-        sentMessage = await channel.send({ embeds: [resourceEmbed] }).catch(console.error);
-      }
-    }
+      // For resource channel
+      const resourceMessages = await resourceChannel.messages.fetch({ limit: 10 });
+      resourceMessages.forEach(async (message) => {
+        if (message.author.id === client.user.id && message.id !== resourceSentMessage.id) {
+          await message.delete().catch(console.error);
+        }
+      });
 
-    const messages = await channel.messages.fetch({ limit: 10 });
-    messages.forEach(async (message) => {
-      if (message.author.id === client.user.id && message.id !== sentMessage.id) {
-        await message.delete().catch(console.error);
-      }
-    });
+      // For site channel
+      const siteMessages = await siteChannel.messages.fetch({ limit: 10 });
+      siteMessages.forEach(async (message) => {
+        if (message.author.id === client.user.id && message.id !== siteSentMessage.id) {
+          await message.delete().catch(console.error);
+        }
+      });
+    }
   }
 
   fetchSystemData();
