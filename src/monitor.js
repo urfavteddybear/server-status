@@ -53,7 +53,7 @@ client.once('ready', async () => {
         { name: '⏱️ **Uptime**', value: `\`${uptimeDays} days, ${uptimeHours} hours, ${uptimeMinutes} minutes, ${uptimeSeconds} seconds\``, inline: true },
         { name: '🖥️ **Platform**', value: `\`${platform}\``, inline: true },
       ],
-      footer: { text: 'Updated every 30 seconds', icon_url: 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png' },
+      footer: { text: 'Updated every 30 seconds'},
       timestamp: new Date(),
     };
 
