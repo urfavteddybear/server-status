@@ -46,14 +46,14 @@ client.once('ready', async () => {
       color: 0x2F3136,
       title: '📊 **Server Information**',
       fields: [
-        { name: '💻 **CPU**', value: `**Model**: ${cpu.manufacturer} ${cpu.brand}\n**Load**: \`${cpuLoad.currentLoad.toFixed(2)}%\``, inline: false },
-        { name: '🧠 **Memory**', value: `**Available**: \`${formatSize(memory.available)}\`\n**Used**: \`${formatSize(memory.active)}\``, inline: false },
-        { name: '💽 **Disk**', value: `**Used**: \`${formatSize(disk[0].used)}\` / \`${formatSize(disk[0].size)}\``, inline: false },
-        { name: '🌐 **Network**', value: `**Upload**: \`${formatSize(network[0].tx_sec)} /s\`\n**Download**: \`${formatSize(network[0].rx_sec)} /s\``, inline: false },
-        { name: '⏱️ **Uptime**', value: `\`${uptimeDays} days, ${uptimeHours} hours, ${uptimeMinutes} minutes, ${uptimeSeconds} seconds\``, inline: false },
+        { name: '💻 **CPU**', value: `**Model**: ${cpu.manufacturer} ${cpu.brand}\n**Load**: \`${cpuLoad.currentLoad.toFixed(2)}%\``, inline: true },
+        { name: '🧠 **Memory**', value: `**Available**: \`${formatSize(memory.available)}\`\n**Used**: \`${formatSize(memory.active)}\``, inline: true },
+        { name: '💽 **Disk**', value: `**Used**: \`${formatSize(disk[0].used)}\` / \`${formatSize(disk[0].size)}\``, inline: true },
+        { name: '🌐 **Network**', value: `**Upload**: \`${formatSize(network[0].tx_sec)} /s\`\n**Download**: \`${formatSize(network[0].rx_sec)} /s\``, inline: true },
+        { name: '⏱️ **Uptime**', value: `\`${uptimeDays} days, ${uptimeHours} hours, ${uptimeMinutes} minutes, ${uptimeSeconds} seconds\``, inline: true },
         { name: '🖥️ **Platform**', value: `\`${platform}\``, inline: true },
       ],
-      footer: { text: 'Updated every 30 seconds', icon_url: 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png' },
+      footer: { text: 'Updated every 30 seconds'},
       timestamp: new Date(),
     };
 
