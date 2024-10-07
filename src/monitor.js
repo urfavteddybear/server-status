@@ -22,40 +22,91 @@ client.once('ready', async () => {
   let siteSentMessage;
 
   function formatSize(size) {
-    if (size > 1024 ** 4) return `${(size / (1024 ** 4)).toFixed(2)} TB`;
-    else if (size > 1024 ** 3) return `${(size / (1024 ** 3)).toFixed(2)} GB`;
-    else if (size > 1024 ** 2) return `${(size / (1024 ** 2)).toFixed(2)} MB`;
-    return `${(size / 1024).toFixed(2)} KB`;
-  }
+    let value, unit;
+    
+    if (size > 1024 ** 4) {
+        value = size / (1024 ** 4);
+        unit = 'TB';
+    } else if (size > 1024 ** 3) {
+        value = size / (1024 ** 3);
+        unit = 'GB';
+    } else if (size > 1024 ** 2) {
+        value = size / (1024 ** 2);
+        unit = 'MB';
+    } else {
+        value = size / 1024;
+        unit = 'KB';
+    }
+
+    const hundredths = Math.round((value - Math.floor(value)) * 100);
+
+    if (hundredths >= 50) {
+        value = Math.ceil(value);
+    } else if (hundredths <= 40) {
+        value = Math.floor(value);
+    } else {
+        value = value.toFixed(2);
+    }
+
+    return `${value} ${unit}`;
+}
 
   async function fetchSystemData() {
-    const cpuLoad = await si.currentLoad();
-    const memory = await si.mem();
-    const disk = await si.fsSize();
-    const network = await si.networkStats();
-    const uptime = os.uptime();
-    const platform = os.platform();
-    const cpu = await si.cpu();
+    const [cpuLoad, memory, disk, network, cpu, cpuTemperature] = await Promise.all([
+      si.currentLoad(),
+      si.mem(),
+      si.fsSize(),
+      si.networkStats(),
+      si.cpu(),
+      si.cpuTemperature()
+  ]);
 
-    const uptimeDays = Math.floor(uptime / 86400);
-    const uptimeHours = Math.floor((uptime % 86400) / 3600);
-    const uptimeMinutes = Math.floor((uptime % 3600) / 60);
-    const uptimeSeconds = Math.floor(uptime % 60);
+  const uptime = os.uptime();
+  const platform = os.platform();
 
-    const resourceEmbed = {
+const uptimeDays = Math.floor(uptime / 86400); // Calculate total days
+  const uptimeHours = Math.floor((uptime % 86400) / 3600); // Remaining hours
+  const uptimeMinutes = Math.floor((uptime % 3600) / 60); // Remaining minutes
+  const uptimeSeconds = Math.floor(uptime % 60); // Remaining seconds
+
+  const uptimeString = `${uptimeDays} Days, ${uptimeHours} Hours, ${uptimeMinutes} Minutes, ${uptimeSeconds} Seconds`;
+  const resourceEmbed = {
       color: 0x2F3136,
       title: '📊 **Server Information**',
       fields: [
-        { name: '💻 **CPU**', value: `**Model**: ${cpu.manufacturer} ${cpu.brand}\n**Load**: \`${cpuLoad.currentLoad.toFixed(2)}%\``, inline: true },
-        { name: '🧠 **Memory**', value: `**Available**: \`${formatSize(memory.available)}\`\n**Used**: \`${formatSize(memory.active)}\``, inline: true },
-        { name: '💽 **Disk**', value: `**Used**: \`${formatSize(disk[0].used)}\` / \`${formatSize(disk[0].size)}\``, inline: true },
-        { name: '🌐 **Network**', value: `**Upload**: \`${formatSize(network[0].tx_sec)} /s\`\n**Download**: \`${formatSize(network[0].rx_sec)} /s\``, inline: true },
-        { name: '⏱️ **Uptime**', value: `\`${uptimeDays} days, ${uptimeHours} hours, ${uptimeMinutes} minutes, ${uptimeSeconds} seconds\``, inline: true },
-        { name: '🖥️ **Platform**', value: `\`${platform}\``, inline: true },
+          {
+              name: '💻 **CPU**',
+              value: `**Model**: ${cpu.manufacturer} ${cpu.brand}\n**Load**: \`${cpuLoad.currentLoad.toFixed(2)}%\` \n **Temp**: Min \`${cpuTemperature.main}\` Max: \`${cpuTemperature.max}\``,
+              inline: true
+          },
+          {
+              name: '🧠 **Memory**',
+              value: `**Available**: \`${formatSize(memory.available)}\`\n**Used**: \`${formatSize(memory.active)}\``,
+              inline: true
+          },
+          {
+              name: '💽 **Disk**',
+              value: `**Used**: \`${formatSize(disk[0].used)}\` / \`${formatSize(disk[0].size)}\``,
+              inline: true
+          },
+          {
+              name: '🌐 **Network**',
+              value: `**Upload**: \`${formatSize(network[0].tx_sec)} /s\`\n**Download**: \`${formatSize(network[0].rx_sec)} /s\``,
+              inline: true
+          },
+          {
+              name: '⏱️ **Uptime**',
+              value: `\`${uptimeString}\``,
+              inline: true
+          },
+          {
+              name: '🖥️ **Platform**',
+              value: `\`${platform}\``,
+              inline: true
+          },
       ],
-      footer: { text: 'Updated every 30 seconds'},
       timestamp: new Date(),
-    };
+  };
 
     // Send resource monitor to the resource channel
     if (resourceSentMessage) {
