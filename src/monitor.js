@@ -197,7 +197,7 @@ client.once('ready', async () => {
           diskAvailable += driveAvailable;
           
           // Debug log for different platforms (can be removed in production)
-          console.log(`Drive ${index} (${drive.fs || drive.mount || 'Unknown'}, ${drive.type}): ${(driveSize/1024**3).toFixed(1)}GB total, ${(calculatedUsed/1024**3).toFixed(1)}GB used, ${(driveAvailable/1024**3).toFixed(1)}GB free`);
+          // console.log(`Drive ${index} (${drive.fs || drive.mount || 'Unknown'}, ${drive.type}): ${(driveSize/1024**3).toFixed(1)}GB total, ${(calculatedUsed/1024**3).toFixed(1)}GB used, ${(driveAvailable/1024**3).toFixed(1)}GB free`);
         });
       }
       
