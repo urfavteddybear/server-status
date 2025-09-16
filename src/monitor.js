@@ -154,11 +154,29 @@ client.once('ready', async () => {
       
       const memoryPercentage = memTotal > 0 ? Math.max(0, Math.min(100, (memUsed / memTotal) * 100)) : 0;
       
-      // Fix disk calculation
-      const diskInfo = diskValue && diskValue.length > 0 ? diskValue[0] : { size: 0, used: 0, available: 0 };
-      const diskTotal = diskInfo.size || 0;
-      const diskUsed = diskInfo.used || 0;
-      const diskAvailable = diskInfo.available || diskInfo.free || (diskTotal - diskUsed);
+      // Fix disk calculation - aggregate all drives with cross-platform compatibility
+      let diskTotal = 0, diskUsed = 0, diskAvailable = 0;
+      
+      if (diskValue && diskValue.length > 0) {
+        diskValue.forEach((drive, index) => {
+          // Add validation for each drive
+          const driveSize = drive.size || 0;
+          const driveUsed = drive.used || 0;
+          const driveAvailable = drive.available || drive.free || 0;
+          
+          // Cross-platform validation: ensure used + available <= total
+          const calculatedUsed = driveSize > 0 && driveAvailable > 0 ? 
+            Math.min(driveUsed, driveSize - driveAvailable) : driveUsed;
+          
+          diskTotal += driveSize;
+          diskUsed += calculatedUsed;
+          diskAvailable += driveAvailable;
+          
+          // Debug log for different platforms (can be removed in production)
+          // console.log(`Drive ${index} (${drive.fs || drive.mount || 'Unknown'}): ${(driveSize/1024**3).toFixed(1)}GB total, ${(calculatedUsed/1024**3).toFixed(1)}GB used, ${(driveAvailable/1024**3).toFixed(1)}GB free`);
+        });
+      }
+      
       const diskPercentage = diskTotal > 0 ? Math.max(0, Math.min(100, (diskUsed / diskTotal) * 100)) : 0;
 
     // Determine embed color based on highest resource usage
