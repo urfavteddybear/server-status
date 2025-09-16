@@ -35,33 +35,37 @@ client.once('ready', async () => {
   let resourceSentMessage;
 
   function formatSize(size) {
-    let value, unit;
+    if (size === 0) return '0 B';
     
-    if (size > 1024 ** 4) {
-        value = size / (1024 ** 4);
-        unit = 'TB';
-    } else if (size > 1024 ** 3) {
-        value = size / (1024 ** 3);
-        unit = 'GB';
-    } else if (size > 1024 ** 2) {
-        value = size / (1024 ** 2);
-        unit = 'MB';
-    } else {
-        value = size / 1024;
-        unit = 'KB';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const base = 1024;
+    
+    // Find the appropriate unit
+    let unitIndex = 0;
+    let value = size;
+    
+    while (value >= base && unitIndex < units.length - 1) {
+      value /= base;
+      unitIndex++;
     }
-
-    const hundredths = Math.round((value - Math.floor(value)) * 100);
-
-    if (hundredths >= 50) {
-        value = Math.ceil(value);
-    } else if (hundredths <= 40) {
-        value = Math.floor(value);
+    
+    // Format based on size for better readability
+    let formattedValue;
+    if (value >= 100) {
+      // For values >= 100, show no decimals (e.g., "156 GB")
+      formattedValue = Math.round(value).toString();
+    } else if (value >= 10) {
+      // For values >= 10, show 1 decimal (e.g., "15.7 GB")
+      formattedValue = value.toFixed(1);
     } else {
-        value = value.toFixed(2);
+      // For values < 10, show 2 decimals (e.g., "1.75 GB")
+      formattedValue = value.toFixed(2);
     }
-
-    return `${value} ${unit}`;
+    
+    // Remove unnecessary trailing zeros
+    formattedValue = parseFloat(formattedValue).toString();
+    
+    return `${formattedValue} ${units[unitIndex]}`;
   }
 
   function createProgressBar(percentage, length = 10) {
