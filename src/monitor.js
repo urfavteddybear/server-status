@@ -130,10 +130,24 @@ client.once('ready', async () => {
       // Calculate percentages with safe checks
       const cpuPercentage = Math.max(0, Math.min(100, cpuLoadValue.currentLoad || 0));
       
-      // Fix memory calculation - use correct properties
+      // Fix memory calculation - cross-platform compatible
       const memTotal = memoryValue.total || 0;
-      const memUsed = memoryValue.used || memoryValue.active || 0;
-      const memAvailable = memoryValue.available || memoryValue.free || (memTotal - memUsed);
+      
+      // On Linux, 'used' includes buffers/cache which makes it look like all RAM is used
+      // Better to calculate: actuallyUsed = total - available (available already excludes buffers/cache)
+      // Fallback to 'active' for systems that don't have 'available'
+      let memUsed, memAvailable;
+      
+      if (memoryValue.available !== undefined && memoryValue.available !== null) {
+        // Use available memory (Linux/modern systems) - this already excludes buffers/cache
+        memAvailable = memoryValue.available;
+        memUsed = memTotal - memAvailable;
+      } else {
+        // Fallback for older systems or different platforms
+        memUsed = memoryValue.active || memoryValue.used || 0;
+        memAvailable = memoryValue.free || (memTotal - memUsed);
+      }
+      
       const memoryPercentage = memTotal > 0 ? Math.max(0, Math.min(100, (memUsed / memTotal) * 100)) : 0;
       
       // Fix disk calculation
