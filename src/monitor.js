@@ -158,7 +158,31 @@ client.once('ready', async () => {
       let diskTotal = 0, diskUsed = 0, diskAvailable = 0;
       
       if (diskValue && diskValue.length > 0) {
-        diskValue.forEach((drive, index) => {
+        // Filter out duplicate/virtual filesystems on Linux
+        const filteredDrives = diskValue.filter(drive => {
+          const fsType = drive.type?.toLowerCase() || '';
+          const mount = drive.mount || '';
+          const fs = drive.fs || '';
+          
+          // Skip virtual/temporary filesystems
+          if (['tmpfs', 'devtmpfs', 'overlay', 'aufs', 'proc', 'sysfs'].includes(fsType)) {
+            return false;
+          }
+          
+          // Skip if mount point is virtual/temporary
+          if (['/dev', '/dev/shm', '/tmp', '/proc', '/sys'].some(vPath => mount.startsWith(vPath))) {
+            return false;
+          }
+          
+          // Skip if size is 0 or very small (< 100MB)
+          if ((drive.size || 0) < 100 * 1024 * 1024) {
+            return false;
+          }
+          
+          return true;
+        });
+        
+        filteredDrives.forEach((drive, index) => {
           // Add validation for each drive
           const driveSize = drive.size || 0;
           const driveUsed = drive.used || 0;
@@ -173,7 +197,7 @@ client.once('ready', async () => {
           diskAvailable += driveAvailable;
           
           // Debug log for different platforms (can be removed in production)
-          // console.log(`Drive ${index} (${drive.fs || drive.mount || 'Unknown'}): ${(driveSize/1024**3).toFixed(1)}GB total, ${(calculatedUsed/1024**3).toFixed(1)}GB used, ${(driveAvailable/1024**3).toFixed(1)}GB free`);
+          console.log(`Drive ${index} (${drive.fs || drive.mount || 'Unknown'}, ${drive.type}): ${(driveSize/1024**3).toFixed(1)}GB total, ${(calculatedUsed/1024**3).toFixed(1)}GB used, ${(driveAvailable/1024**3).toFixed(1)}GB free`);
         });
       }
       
