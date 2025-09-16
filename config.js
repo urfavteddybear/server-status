@@ -1,24 +1,20 @@
+require('dotenv').config();
+
+// Validate required environment variables
+if (!process.env.DISCORD_TOKEN) {
+    console.error('❌ Error: DISCORD_TOKEN is required in .env file');
+    console.error('💡 Copy .env.example to .env and fill in your values');
+    process.exit(1);
+}
+
+if (!process.env.RESOURCE_CHANNEL_ID) {
+    console.error('❌ Error: RESOURCE_CHANNEL_ID is required in .env file');
+    console.error('💡 Copy .env.example to .env and fill in your values');
+    process.exit(1);
+}
+
 module.exports = {
-    token: '',  // Your Discord bot token
-    resourceChannelId: '',  // Channel for resource monitor updates
-    siteChannelId: '',  // Channel for site monitor updates (can be same as resourceChannelId)
-    refreshInterval: 10 * 1000,  // 30 seconds refresh interval
-    webMonitor: true, // change this to false if you dont want the webmonitor
-    sitesToMonitor: [
-        { 
-            url: 'https://youtube.com', 
-            name: 'YouTube' 
-        },
-        {
-            url: 'https://google.com',
-            name: 'Google',
-            headers: { 'Authorization': 'blahblah' }  // Example of custom headers
-        },
-        { 
-            ping: '1.1.1.1', 
-            name: 'IP' 
-        }, 
-        // Add more sites or IPs as needed
-      ],
-  };
-  
+    token: process.env.DISCORD_TOKEN,
+    resourceChannelId: process.env.RESOURCE_CHANNEL_ID,
+    refreshInterval: (process.env.REFRESH_INTERVAL_SECONDS || 30) * 1000,
+};
