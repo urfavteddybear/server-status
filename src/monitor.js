@@ -147,6 +147,9 @@ client.once('ready', async () => {
     const maxUsage = Math.max(cpuPercentage, memoryPercentage, diskPercentage);
     const embedColor = getColorByPercentage(maxUsage);
 
+    // Format CPU temperature - only show if available
+    const tempDisplay = cpuTempValue.main ? `\n**Temperature:** ${Math.round(cpuTempValue.main)}°C` : '';
+
     const resourceEmbed = {
       color: embedColor,
       title: ' **📊 Server Resource Monitor**',
@@ -154,7 +157,7 @@ client.once('ready', async () => {
       fields: [
         {
           name: '📈 **CPU Information**',
-          value: `**Processor:** ${cpu.manufacturer} ${cpu.brand}\n**Cores:** ${cpu.cores} cores @ ${cpu.speed}GHz\n**Usage:** ${createProgressBar(cpuPercentage)}\n**Temperature:** ${cpuTemperature.main || 'N/A'}°C`,
+          value: `**Processor:** ${cpu.manufacturer} ${cpu.brand}\n**Cores:** ${cpu.cores} cores @ ${cpu.speed}GHz\n**Usage:** ${createProgressBar(cpuPercentage)}${tempDisplay}`,
           inline: false
         },
         {
